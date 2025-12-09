@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sol Runners – Axiom Board</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #020617;
+      color: #f5f5f5;
+    }
+    header {
+      padding: 14px 16px 8px;
+      border-bottom: 1px solid #111827;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #22c55e;
+    }
+    header small {
+      display: block;
+      font-size: 0.7rem;
+      color: #9ca3af;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.8rem;
+    }
+    .controls label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    input[type="number"], select {
+      background: #020617;
+      border: 1px solid #273549;
+      border-radius: 6px;
+      padding: 5px 8px;
+      color: #f9fafb;
+      font-size: 0.8rem;
+      max-width: 140px;
+    }
+    #lastUpdate {
+      width: 100%;
+      padding: 4px 16px 0;
+      font-size: 0.72rem;
+      color: #9ca3af;
+    }
+    #btcBanner {
+      width: 100%;
+      text-align: center;
+      background: #7f1d1d;
+      color: #fecaca;
+      padding: 4px 16px;
+      font-size: 0.7rem;
+      display: none;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      padding: 8px 16px 0;
+      border-bottom: 1px solid #111827;
+      font-size: 0.8rem;
+    }
+    .tab {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #9ca3af;
+      cursor: pointer;
+    }
+    .tab.active {
+      background: #111827;
+      border-color: #1f2937;
+      color: #e5e7eb;
+    }
+    main {
+      padding: 14px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+    .card {
+      background: radial-gradient(circle at top left, #0f172a, #020617);
+      border-radius: 14px;
+      padding: 12px;
+      border: 1px solid #1f2937;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4px;
+    }
+    .coin-symbol {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .pair {
+      font-size: 0.75rem;
+      color: #9ca3af;
+    }
+    .bias-long { color: #4ade80; }
+    .bias-short { color: #fb7185; }
+    .tag {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid #374151;
+      color: #e5e7eb;
+      max-width: 130px;
+      text-align: right;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px 10px;
+      font-size: 0.75rem;
+      margin: 6px 0;
+    }
+    .label {
+      color: #9ca3af;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .value {
+      font-weight: 500;
+    }
+    .value.important {
+      font-size: 0.9rem;
+    }
+    .risk-good { color: #4ade80; }
+    .risk-mid { color: #facc15; }
+    .risk-high { color: #fb7185; }
+    .leverage-input {
+      width: 100%;
+      margin-top: 4px;
+    }
+    .leverage-label {
+      font-size: 0.65rem;
+      color: #a5b4fc;
+      margin-top: 2px;
+    }
+    .leverage-warning {
+      font-size: 0.7rem;
+      color: #fb7185;
+      margin-top: 4px;
+    }
+    .chart-container {
+      margin-top: 6px;
+      height: 220px;
+      display: block; /* always visible */
+      overflow: hidden;
+      border-radius: 10px;
+      border: 1px solid #111827;
+    }
+    .prediction-text {
+      font-size: 0.75rem;
+      color: #e5e7eb;
+      margin-top: 4px;
+    }
+    .prediction-outlook {
+      font-weight: 600;
+    }
+    .note-area {
+      margin-top: 6px;
+    }
+    .note-area textarea {
+      width: 100%;
+      min-height: 60px;
+      resize: vertical;
+      background: #020617;
+      border-radius: 8px;
+      border: 1px solid #1f2937;
+      color: #e5e7eb;
+      font-size: 0.75rem;
+      padding: 4px 6px;
+    }
+    .note-label {
+      font-size: 0.7rem;
+      color: #9ca3af;
+      margin-bottom: 2px;
+      display: block;
+    }
+    .error {
+      padding: 8px 16px;
+      color: #fecaca;
+      font-size: 0.75rem;
+      display: none;
+    }
+    .copy-btn {
+      margin-top: 6px;
+      width: 100%;
+      background: #1e40af;
+      border: 1px solid #3b82f6;
+      color: #e5e7eb;
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      cursor: pointer;
+    }
+    .copy-btn:hover {
+      background: #1e3a8a;
+    }
+    .toggle-btn {
+      background: #020617;
+      border: 1px solid #374151;
+      color: #e5e7eb;
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 0.65rem;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    .footer-note {
+      padding: 8px 16px 4px;
+      font-size: 0.7rem;
+      color: #9ca3af;
+      border-top: 1px solid #020617;
+    }
+    .footer-controls {
+      padding: 0 16px 12px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.65rem;
+      color: #6b7280;
+    }
+    #resetDisclaimerBtn {
+      background: #111827;
+      border: 1px solid #374151;
+      color: #e5e7eb;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 0.65rem;
+      cursor: pointer;
+    }
+    #agreeTime {
+      font-size: 0.65rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>SOL RUNNERS</h1>
+      <small>Solana memes + top runners · sized to your account</small>
+    </div>
+    <div class="controls">
+      <label>
+        Account size ($):
+        <input type="number" id="accountSize" value="2000" min="100" step="50">
+      </label>
+      <label>
+        Max risk / trade ($):
+        <input type="number" id="maxRisk" value="25" min="0" step="5">
+      </label>
+      <label>
+        Mode:
+        <select id="modeSelect">
+          <option value="runners">Top 10 Runners (24h)</option>
+          <option value="memes">Sol Meme / Axiom Mode</option>
+        </select>
+      </label>
+    </div>
+    <div id="lastUpdate">Last update: —</div>
+  </header>
+
+  <!-- Top NFA bar -->
+  <div style="width:100%;text-align:center;background:#020617;color:#fbbf24;padding:6px 16px;font-size:0.7rem;border-bottom:1px solid #1f2937;">
+    ⚠️ NOT FINANCIAL ADVICE — Educational use only. You are solely responsible for your trades.
+  </div>
+
+  <div id="btcBanner">
+    BTC is dumping hard today. Expect extra volatility on perps and memes.
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="tabBoard">Board</button>
+    <button class="tab" id="tabPredictions">Predictions</button>
+  </div>
+
+  <div id="errorBox" class="error"></div>
+
+  <main id="board"></main>
+  <main id="predictions" style="display:none;"></main>
+
+  <div class="footer-note">
+    ⚠️ NOT FINANCIAL ADVICE. Sol Runners is a helper tool for educational and informational purposes only.
+    This does NOT constitute investment, trading, or financial advice. Crypto and leveraged trading are extremely risky;
+    you can lose your entire account. Data comes from public APIs and may be delayed or inaccurate.
+    Always verify prices and risk parameters directly on your exchange before trading.
+  </div>
+  <div class="footer-controls">
+    <div id="agreeTime"></div>
+    <button id="resetDisclaimerBtn" type="button">Reset Disclaimer</button>
+  </div>
+
+  <!-- Disclaimer Popup -->
+  <div id="disclaimerOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:9999;">
+    <div style="background:#020617;border:1px solid #1f2937;border-radius:14px;padding:20px;max-width:360px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.7);">
+      <h2 style="margin-top:0;color:#fbbf24;font-size:1rem;">⚠️ Not Financial Advice</h2>
+      <p style="font-size:0.75rem;color:#e5e7eb;line-height:1.4;">
+        Sol Runners is a market visualization tool for educational purposes only.
+        This is NOT financial advice, trading advice, or investment advice.
+        You are fully responsible for any trades you place.
+      </p>
+      <p style="font-size:0.7rem;color:#9ca3af;line-height:1.4;">
+        Leveraged crypto trading is extremely risky and you can lose your entire account.
+        Data may be delayed or inaccurate. Always verify directly on your exchange.
+      </p>
+      <button id="agreeBtn" style="margin-top:12px;width:100%;background:#22c55e;border:1px solid #4ade80;color:#020617;padding:8px;border-radius:8px;font-size:0.8rem;font-weight:600;cursor:pointer;">
+        I Understand & Agree
+      </button>
+    </div>
+  </div>
+
+  <audio id="alertSound">
+    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+  </audio>
+
+  <!-- TradingView library -->
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // DOM refs
+      const cardsEl = document.getElementById("board");
+      const predictionsEl = document.getElementById("predictions");
+      const accountSizeEl = document.getElementById("accountSize");
+      const maxRiskEl = document.getElementById("maxRisk");
+      const modeSelectEl = document.getElementById("modeSelect");
+      const lastUpdateEl = document.getElementById("lastUpdate");
+      const errorBox = document.getElementById("errorBox");
+      const btcBanner = document.getElementById("btcBanner");
+      const alertSound = document.getElementById("alertSound");
+      const tabBoard = document.getElementById("tabBoard");
+      const tabPredictions = document.getElementById("tabPredictions");
+      const overlay = document.getElementById("disclaimerOverlay");
+      const agreeBtn = document.getElementById("agreeBtn");
+      const resetDisclaimerBtn = document.getElementById("resetDisclaimerBtn");
+      const agreeTimeEl = document.getElementById("agreeTime");
+
+      const memeCoins = [
+        { cgId: "dogwifhat", symbol: "WIF", name: "dogwifhat" },
+        { cgId: "bonk",     symbol: "BONK", name: "Bonk" },
+        { cgId: "popcat",   symbol: "POPCAT", name: "Popcat" }
+      ];
+
+      let lastTrades = [];
+      let usingFallback = false;
+
+      // Disclaimer logic
+      function updateAgreeTimeDisplay() {
+        const t = localStorage.getItem("solrunners_disclaimer_time");
+        if (!t) {
+          agreeTimeEl.textContent = "";
+          return;
+        }
+        const d = new Date(t);
+        if (!isNaN(d)) {
+          agreeTimeEl.textContent = "Disclaimer accepted on: " + d.toLocaleString();
+        }
+      }
+
+      if (localStorage.getItem("solrunners_disclaimer_accepted")) {
+        overlay.style.display = "none";
+        updateAgreeTimeDisplay();
+      }
+
+      agreeBtn.addEventListener("click", () => {
+        const now = new Date();
+        localStorage.setItem("solrunners_disclaimer_accepted", "true");
+        localStorage.setItem("solrunners_disclaimer_time", now.toISOString());
+        overlay.style.display = "none";
+        updateAgreeTimeDisplay();
+      });
+
+      resetDisclaimerBtn.addEventListener("click", () => {
+        localStorage.removeItem("solrunners_disclaimer_accepted");
+        localStorage.removeItem("solrunners_disclaimer_time");
+        overlay.style.display = "flex";
+        agreeTimeEl.textContent = "";
+      });
+
+      // Helpers
+      function formatMoney(num) {
+        const abs = Math.abs(num);
+        const decimals = abs >= 100 ? 0 : abs >= 10 ? 2 : 2;
+        return (num < 0 ? "-" : "") + "$" + Math.abs(num).toFixed(decimals);
+      }
+
+      function riskClass(riskPct) {
+        if (riskPct <= 1) return "risk-good";
+        if (riskPct <= 2) return "risk-mid";
+        return "risk-high";
+      }
+
+      function getTradingViewSymbol(trade) {
+        // Simple default mapping: BINANCE:<SYMBOL>USDT
+        return `BINANCE:${trade.coin.toUpperCase()}USDT`;
+      }
+
+      function buildTradeObjectsFromRunners(apiData) {
+        return apiData.map(coin => {
+          const entry = coin.current_price;
+          return {
+            coin: coin.symbol.toUpperCase(),
+            name: coin.name,
+            pair: coin.symbol.toUpperCase() + "-USD",
+            bias: "LONG",
+            entry,
+            stop: entry * 0.93,
+            tp1: entry * 1.10,
+            tp2: entry * 1.20,
+            leverage: 5,
+            positionPct: 0.05,
+            change24h: coin.price_change_percentage_24h,
+            setup: "Top 24h Gainer"
+          };
+        });
+      }
+
+      function buildTradeObjectsFromMemes(priceData) {
+        return memeCoins.map(m => {
+          const entry = priceData[m.cgId]?.usd || 0;
+          return {
+            coin: m.symbol,
+            name: m.name,
+            pair: m.symbol + "-USD",
+            bias: "LONG",
+            entry,
+            stop: entry * 0.93,
+            tp1: entry * 1.10,
+            tp2: entry * 1.20,
+            leverage: 5,
+            positionPct: 0.05,
+            change24h: null,
+            setup: "Sol Meme / Axiom Play"
+          };
+        }).filter(t => t.entry > 0);
+      }
+
+      // Fallback demo data if APIs fail
+      function getFallbackTrades(mode) {
+        usingFallback = true;
+        if (mode === "runners") {
+          return [
+            { coin: "SOL",  name: "Solana",  pair: "SOL-USD",  bias: "LONG", entry: 160, stop: 148, tp1: 176, tp2: 190, leverage: 5,  positionPct: 0.05, change24h: 12.3, setup: "Demo Runner" },
+            { coin: "WIF",  name: "dogwifhat", pair: "WIF-USD", bias: "LONG", entry: 3.2, stop: 2.9, tp1: 3.6, tp2: 3.9, leverage: 8,  positionPct: 0.04, change24h: 26.1, setup: "Demo Runner" },
+            { coin: "BONK", name: "Bonk",   pair: "BONK-USD", bias: "LONG", entry: 0.000025, stop: 0.000022, tp1: 0.000028, tp2: 0.000030, leverage: 10, positionPct: 0.03, change24h: 18.5, setup: "Demo Runner" }
+          ];
+        } else {
+          return [
+            { coin: "WIF",  name: "dogwifhat", pair: "WIF-USD",  bias: "LONG", entry: 3.2, stop: 2.9, tp1: 3.6, tp2: 3.9, leverage: 5, positionPct: 0.05, change24h: null, setup: "Demo Meme" },
+            { coin: "BONK", name: "Bonk",     pair: "BONK-USD", bias: "LONG", entry: 0.000025, stop: 0.000022, tp1: 0.000028, tp2: 0.000030, leverage: 5, positionPct: 0.05, change24h: null, setup: "Demo Meme" },
+            { coin: "POPCAT", name: "Popcat", pair: "POPCAT-USD", bias: "LONG", entry: 0.5, stop: 0.45, tp1: 0.55, tp2: 0.60, leverage: 5, positionPct: 0.05, change24h: null, setup: "Demo Meme" }
+          ];
+        }
+      }
+
+      function copyTrade(trade, pos, risk, p1, p2) {
+        const text = `
+${trade.coin} ${trade.bias} ${trade.leverage}x
+Entry: ${trade.entry}
+Stop: ${trade.stop}
+TP1: ${trade.tp1}
+TP2: ${trade.tp2}
+
+Position: ${formatMoney(pos)}
+Risk: ${formatMoney(risk)}
+Profit TP1: ${formatMoney(p1)}
+Profit TP2: ${formatMoney(p2)}
+        `.trim();
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).catch(() => {});
+        }
+      }
+
+      function classifyOutlook(trade) {
+        const c = trade.change24h;
+        if (c == null) {
+          return {
+            outlook: "Meme / sentiment-driven",
+            detail: "Pure Sol meme play. Size small and expect wild swings."
+          };
+        }
+        if (c >= 20) {
+          return {
+            outlook: "Overextended / take-profit zone",
+            detail: "Up big on the day. Chasing here is risky; better for de-risking or careful scalp."
+          };
+        }
+        if (c >= 5) {
+          return {
+            outlook: "Momentum / continuation possible",
+            detail: "Strong 24h move. Trend could continue but volatility is high."
+          };
+        }
+        if (c <= -5) {
+          return {
+            outlook: "Dump / possible bounce",
+            detail: "Down heavy. Could bounce, but knife-catching is dangerous."
+          };
+        }
+        return {
+          outlook: "Choppy / neutral",
+          detail: "No strong 24h move. Likely range; be picky with entries."
+        };
+      }
+
+      function spawnChart(containerId, symbol) {
+        if (window.TradingView && window.TradingView.widget) {
+          new TradingView.widget({
+            autosize: true,
+            symbol: symbol,
+            interval: "15",
+            timezone: "Etc/UTC",
+            theme: "dark",
+            style: "1",
+            locale: "en",
+            toolbar_bg: "#0b1120",
+            hide_side_toolbar: false,
+            container_id: containerId
+          });
+          return true;
+        }
+        return false;
+      }
+
+      // BOARD VIEW
+      function renderCards(trades) {
+        const accountSize = parseFloat(accountSizeEl.value) || 2000;
+        const maxRisk = parseFloat(maxRiskEl.value) || 0;
+        cardsEl.innerHTML = "";
+
+        trades.forEach((trade, index) => {
+          const basePositionDollar = trade.positionPct * accountSize;
+          const perDollarRisk = Math.abs(trade.entry - trade.stop) * trade.leverage / trade.entry;
+
+          let positionDollar = basePositionDollar;
+          if (maxRisk > 0 && perDollarRisk > 0) {
+            const maxPositionFromRisk = maxRisk / perDollarRisk;
+            positionDollar = Math.min(basePositionDollar, maxPositionFromRisk, accountSize);
+          }
+
+          const riskDollar = perDollarRisk * positionDollar;
+          const profitTP1 = Math.abs(trade.tp1 - trade.entry) * positionDollar * trade.leverage / trade.entry;
+          const profitTP2 = Math.abs(trade.tp2 - trade.entry) * positionDollar * trade.leverage / trade.entry;
+          const riskPctAccount = (riskDollar / accountSize) * 100;
+          const biasClass = trade.bias === "SHORT" ? "bias-short" : "bias-long";
+          const riskCls = riskClass(riskPctAccount);
+          const highLev = trade.leverage >= 20;
+
+          if (trade.change24h && trade.change24h > 10) {
+            alertSound.play().catch(() => {});
+          }
+
+          const changeStr = trade.change24h != null
+            ? (trade.change24h.toFixed ? trade.change24h.toFixed(1) + "% (24h)" : trade.change24h + "% (24h)")
+            : "—";
+
+          const chartId = "tv_" + trade.pair.replace(/[^a-zA-Z0-9]/g, "") + "_" + index;
+          const symbol = getTradingViewSymbol(trade);
+
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <div class="card-header">
+              <div>
+                <div class="coin-symbol">
+                  ${trade.coin} <span class="pair">(${trade.pair})</span>
+                </div>
+                <div class="${biasClass}" style="font-size:0.8rem;font-weight:500;">
+                  ${trade.bias} · ${trade.leverage}x
+                </div>
+                <button class="toggle-btn">Flip LONG/SHORT</button>
+              </div>
+              <div class="tag" title="${trade.setup}">
+                ${trade.setup}${usingFallback ? " (demo)" : ""}
+              </div>
+            </div>
+
+            <div style="font-size:0.7rem;color:#9ca3af;margin-bottom:4px;">
+              24h Change: ${changeStr}
+            </div>
+
+            <div class="chart-container">
+              <div id="${chartId}" style="width:100%;height:100%;"></div>
+            </div>
+
+            <div class="grid">
+              <div>
+                <div class="label">Entry (spot)</div>
+                <div class="value">${trade.entry.toFixed ? trade.entry.toFixed(6) : trade.entry}</div>
+              </div>
+              <div>
+                <div class="label">Stop Loss</div>
+                <div class="value">${trade.stop.toFixed ? trade.stop.toFixed(6) : trade.stop}</div>
+              </div>
+              <div>
+                <div class="label">TP1</div>
+                <div class="value">${trade.tp1.toFixed ? trade.tp1.toFixed(6) : trade.tp1}</div>
+              </div>
+              <div>
+                <div class="label">TP2</div>
+                <div class="value">${trade.tp2.toFixed ? trade.tp2.toFixed(6) : trade.tp2}</div>
+              </div>
+            </div>
+
+            <div class="leverage-label">Leverage: ${trade.leverage}x</div>
+            <input class="leverage-input" type="range" min="1" max="50" step="1" value="${trade.leverage}" />
+
+            <div class="grid" style="margin-top:4px;">
+              <div>
+                <div class="label">Position Size</div>
+                <div class="value important">${formatMoney(positionDollar)}</div>
+              </div>
+              <div>
+                <div class="label">Risk</div>
+                <div class="value important ${riskCls}">
+                  ${formatMoney(riskDollar)} (${riskPctAccount.toFixed(1)}% of acct)
+                </div>
+              </div>
+              <div>
+                <div class="label">Profit @ TP1</div>
+                <div class="value">${formatMoney(profitTP1)}</div>
+              </div>
+              <div>
+                <div class="label">Profit @ TP2</div>
+                <div class="value">${formatMoney(profitTP2)}</div>
+              </div>
+            </div>
+
+            ${highLev ? `<div class="leverage-warning">High leverage (20x+): tiny moves can liquidate you. Size very small.</div>` : ""}
+
+            <button class="copy-btn">Copy Trade Plan</button>
+          `;
+
+          // Copy button
+          card.querySelector(".copy-btn").onclick = () => {
+            copyTrade(trade, positionDollar, riskDollar, profitTP1, profitTP2);
+          };
+
+          // Flip long/short
+          card.querySelector(".toggle-btn").onclick = () => {
+            trade.bias = (trade.bias === "LONG") ? "SHORT" : "LONG";
+            renderCards(trades);
+            renderPredictions(trades);
+          };
+
+          cardsEl.appendChild(card);
+
+          // Init TradingView chart (try now; if TV not ready, retry once)
+          const started = spawnChart(chartId, symbol);
+          if (!started) {
+            setTimeout(() => spawnChart(chartId, symbol), 1500);
+          }
+        });
+      }
+
+      // PREDICTIONS VIEW
+      function renderPredictions(trades) {
+        const accountSize = parseFloat(accountSizeEl.value) || 2000;
+        const maxRisk = parseFloat(maxRiskEl.value) || 0;
+        predictionsEl.innerHTML = "";
+
+        trades.forEach(trade => {
+          const basePositionDollar = trade.positionPct * accountSize;
+          const perDollarRisk = Math.abs(trade.entry - trade.stop) * trade.leverage / trade.entry;
+
+          let positionDollar = basePositionDollar;
+          if (maxRisk > 0 && perDollarRisk > 0) {
+            const maxPositionFromRisk = maxRisk / perDollarRisk;
+            positionDollar = Math.min(basePositionDollar, maxPositionFromRisk, accountSize);
+          }
+
+          const riskDollar = perDollarRisk * positionDollar;
+          const riskPctAccount = (riskDollar / accountSize) * 100;
+          const riskCls = riskClass(riskPctAccount);
+          const outlook = classifyOutlook(trade);
+
+          const changeStr = trade.change24h != null
+            ? (trade.change24h.toFixed ? trade.change24h.toFixed(1) + "% (24h)" : trade.change24h + "% (24h)")
+            : "—";
+
+          const noteKey = "solrunners_note_" + trade.pair;
+          const savedNote = localStorage.getItem(noteKey) || "";
+
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <div class="card-header">
+              <div>
+                <div class="coin-symbol">
+                  ${trade.coin} <span class="pair">(${trade.pair})</span>
+                </div>
+                <div style="font-size:0.75rem;color:#9ca3af;">
+                  24h Change: ${changeStr}${usingFallback ? " (demo)" : ""}
+                </div>
+              </div>
+              <div class="tag">Prediction</div>
+            </div>
+
+            <div class="prediction-text">
+              <span class="prediction-outlook">${outlook.outlook}</span><br/>
+              <span>${outlook.detail}</span>
+            </div>
+
+            <div style="font-size:0.75rem;margin-top:6px;">
+              <span class="label">Risk at stop</span><br/>
+              <span class="${riskCls}">
+                ${formatMoney(riskDollar)} (${riskPctAccount.toFixed(1)}% of account)
+              </span>
+            </div>
+
+            <div class="note-area">
+              <label class="note-label">My notes / prediction for this coin:</label>
+              <textarea>${savedNote}</textarea>
+            </div>
+          `;
+
+          const textarea = card.querySelector("textarea");
+          textarea.addEventListener("input", () => {
+            localStorage.setItem(noteKey, textarea.value);
+          });
+
+          predictionsEl.appendChild(card);
+        });
+      }
+
+      // Data fetch
+      async function fetchRunners() {
+        const url =
+          "https://api.coingecko.com/api/v3/coins/markets" +
+          "?vs_currency=usd&order=price_change_percentage_24h_desc" +
+          "&per_page=10&page=1&price_change_percentage=24h";
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Failed to fetch runners");
+        const data = await res.json();
+        return buildTradeObjectsFromRunners(data);
+      }
+
+      async function fetchMemes() {
+        const ids = memeCoins.map(m => m.cgId).join(",");
+        const url =
+          `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Failed to fetch meme prices");
+        const data = await res.json();
+        return buildTradeObjectsFromMemes(data);
+      }
+
+      async function fetchBTCStatus() {
+        try {
+          const url =
+            "https://api.coingecko.com/api/v3/simple/price" +
+            "?ids=bitcoin&vs_currencies=usd&include_24hr_change=true";
+          const res = await fetch(url);
+          if (!res.ok) throw new Error("Failed to fetch BTC");
+          const data = await res.json();
+          const change = data.bitcoin?.usd_24h_change;
+          if (typeof change === "number" && change <= -3) {
+            btcBanner.style.display = "block";
+            btcBanner.textContent =
+              `BTC is down ${change.toFixed(1)}% today · expect extra volatility on perps and memes.`;
+          } else {
+            btcBanner.style.display = "none";
+          }
+        } catch {
+          btcBanner.style.display = "none";
+        }
+      }
+
+      async function refreshBoard(fetchNew = true) {
+        try {
+          errorBox.style.display = "none";
+          let trades = lastTrades;
+          usingFallback = false;
+
+          if (fetchNew || !trades.length) {
+            const mode = modeSelectEl.value;
+
+            try {
+              trades = mode === "runners"
+                ? await fetchRunners()
+                : await fetchMemes();
+            } catch (innerErr) {
+              console.error("API error, using fallback:", innerErr);
+              errorBox.style.display = "block";
+              errorBox.textContent =
+                "Live data error (API / network). Showing demo data so you can still use the board.";
+              trades = getFallbackTrades(mode);
+            }
+
+            if (!trades || !trades.length) {
+              trades = getFallbackTrades(mode);
+            }
+
+            // preserve bias/lev when possible
+            if (lastTrades.length) {
+              trades.forEach(t => {
+                const old = lastTrades.find(o => o.pair === t.pair);
+                if (old) {
+                  t.leverage = old.leverage;
+                  t.bias = old.bias;
+                }
+              });
+            }
+            lastTrades = trades;
+          }
+
+          await fetchBTCStatus();
+          renderCards(trades);
+          renderPredictions(trades);
+          lastUpdateEl.textContent =
+            "Last update: " + new Date().toLocaleTimeString() +
+            (usingFallback ? " (demo data – API error)" : "");
+        } catch (err) {
+          console.error(err);
+          errorBox.style.display = "block";
+          errorBox.textContent =
+            "Unexpected error. Showing demo data.";
+          const mode = modeSelectEl.value;
+          lastTrades = getFallbackTrades(mode);
+          renderCards(lastTrades);
+          renderPredictions(lastTrades);
+          lastUpdateEl.textContent =
+            "Last update: " + new Date().toLocaleTimeString() + " (demo data – error)";
+        }
+      }
+
+      // Tabs
+      tabBoard.addEventListener("click", () => {
+        tabBoard.classList.add("active");
+        tabPredictions.classList.remove("active");
+        cardsEl.style.display = "grid";
+        predictionsEl.style.display = "none";
+      });
+
+      tabPredictions.addEventListener("click", () => {
+        tabPredictions.classList.add("active");
+        tabBoard.classList.remove("active");
+        cardsEl.style.display = "none";
+        predictionsEl.style.display = "grid";
+      });
+
+      // Inputs
+      accountSizeEl.addEventListener("input", () => {
+        if (lastTrades.length) {
+          renderCards(lastTrades);
+          renderPredictions(lastTrades);
+        } else {
+          refreshBoard(true);
+        }
+      });
+
+      maxRiskEl.addEventListener("input", () => {
+        if (lastTrades.length) {
+          renderCards(lastTrades);
+          renderPredictions(lastTrades);
+        } else {
+          refreshBoard(true);
+        }
+      });
+
+      modeSelectEl.addEventListener("change", () => {
+        refreshBoard(true);
+      });
+
+      // Initial load + auto refresh
+      refreshBoard(true);
+      setInterval(() => refreshBoard(true), 30000);
+    });
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
