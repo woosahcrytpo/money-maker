@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sol Runners – Coin View</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui;
+      background: #020617;
+      color: #f5f5f5;
+      padding: 12px;
+    }
+    h1 {
+      margin: 0 0 8px 0;
+      font-size: 1.1rem;
+      color: #22c55e;
+    }
+    .sub {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-bottom: 10px;
+    }
+    .chart-box {
+      height: 80vh;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid #1f2937;
+    }
+  </style>
+</head>
+<body>
+
+<h1 id="title">Coin</h1>
+<div id="sub" class="sub"></div>
+
+<div class="chart-box" id="tv"></div>
+
+<script src="https://s3.tradingview.com/tv.js"></script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const coin = params.get("coin") || "SOL";
+  const pair = params.get("pair") || (coin + "-USD");
+
+  document.getElementById("title").textContent = `${coin} — Sol Runners`;
+  document.getElementById("sub").textContent = pair;
+
+  function initCoinChart() {
+    if (window.TradingView && window.TradingView.widget) {
+      new TradingView.widget({
+        autosize: true,
+        symbol: `BINANCE:${coin.toUpperCase()}USDT`,
+        interval: "15",
+        timezone: "Etc/UTC",
+        theme: "dark",
+        style: "1",
+        locale: "en",
+        toolbar_bg: "#0b1120",
+        hide_side_toolbar: false,
+        studies: [
+          "STD;Supertrend",
+          "STD;EMA"
+        ],
+        container_id: "tv"
+      });
+    } else {
+      setTimeout(initCoinChart, 500);
+    }
+  }
+
+  initCoinChart();
+</script>
+
+</body>
+</html>
